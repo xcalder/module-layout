@@ -4,9 +4,9 @@ namespace ModuleLayout\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ModulesSettingToLayout extends Model
+class ModulesRoute extends Model
 {
-    protected $table = 'modules_setting_to_layout';
+    protected $table = 'modules_route';
     /**
      * The attributes that are mass assignable.
      *

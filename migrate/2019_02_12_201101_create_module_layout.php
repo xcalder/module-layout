@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateProductActivity extends Migration
+class CreateModules extends Migration
 {
     /**
      * Run the migrations.
@@ -13,51 +13,32 @@ class CreateProductActivity extends Migration
      */
     public function up()
     {
-        Schema::create('product_activity', function (Blueprint $table) {
+        Schema::create('modules', function (Blueprint $table) {
             $table->increments('id');
             $table->string('title', 32);
             $table->string('description')->nullable();
-            $table->string('tag', 32)->nullable();
-            $table->string('tag_img')->nullable();
+            $table->string('code', 32)->nullable();
             $table->tinyInteger('status')->default(0);
-            $table->tinyInteger('type')->default(1);
-            $table->bigInteger('store_id')->default(0);
-            $table->bigInteger('category_id');
-            $table->dateTime('started_at');
-            $table->dateTime('ended_at');
-            $table->timestamps();
         });
         
-        Schema::create('product_activity_rules', function (Blueprint $table) {
+        Schema::create('modules_setting', function (Blueprint $table) {
             $table->increments('id');
-            $table->bigInteger('activity_id');
-            $table->float('price', 11, 2)->default(0);
-            $table->float('limit', 11, 2)->default(0);
-            $table->bigInteger('total')->default(0);
-            $table->bigInteger('get_limit')->default(0);
+            $table->bigInteger('module_id');
+            $table->text('setting');
             $table->tinyInteger('status')->default(1);
         });
         
-        Schema::create('product_activity_rule_roles', function (Blueprint $table) {
+        Schema::create('modules_route', function (Blueprint $table) {
             $table->increments('id');
-            $table->bigInteger('activity_id');
-            $table->bigInteger('activity_rules_id')->default(0);
-            $table->bigInteger('role_id');
-            $table->float('price', 11, 2)->default(0);
-            $table->bigInteger('product_id')->default(0);
-            $table->bigInteger('product_specification_value_to_product_id')->default(0);
+            $table->string('route');
+            $table->tinyInteger('status')->default(1);
         });
         
-        Schema::create('product_activity_rule_products', function (Blueprint $table) {
+        Schema::create('modules_setting_to_route', function (Blueprint $table) {
             $table->increments('id');
-            $table->bigInteger('activity_id');
-            $table->bigInteger('activity_rules_id')->default(0);
-            $table->bigInteger('product_id');
-            $table->bigInteger('product_specification_value_to_product_id');
-            $table->bigInteger('sales_storage')->default(0);
-            $table->bigInteger('sales_volume')->default(0);
-            $table->tinyInteger('status')->default(1);
-            $table->tinyInteger('type')->default(1);
+            $table->bigInteger('module_id');
+            $table->bigInteger('modules_setting_id');
+            $table->tinyInteger('layout')->default(1);
         });
     }
 
@@ -68,8 +49,9 @@ class CreateProductActivity extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('product_activity');
-        Schema::dropIfExists('product_activity_rules');
-        Schema::dropIfExists('product_activity_rule_roles');
+        Schema::dropIfExists('modules');
+        Schema::dropIfExists('modules_setting');
+        Schema::dropIfExists('modules_route');
+        Schema::dropIfExists('modules_setting_to_route');
     }
 }

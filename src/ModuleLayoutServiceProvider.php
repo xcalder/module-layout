@@ -1,6 +1,6 @@
 <?php
 
-namespace Activity;
+namespace ModuleLayout;
 
 use Illuminate\Support\ServiceProvider;
 use Activity\Factory\Factory;
@@ -39,7 +39,7 @@ class ModuleLayoutServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(Factory::class, function ($app) {
-            return new ActivityManager($app);
+            return new ModuleLayoutManager($app);
         });
     }
 

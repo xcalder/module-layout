@@ -1,6 +1,6 @@
 <?php
 
-namespace Activity\Facades;
+namespace ModuleLayout\Facades;
 
 use Illuminate\Support\Facades\Facade;
 use Activity\Factory\Factory;
@@ -8,7 +8,7 @@ use Activity\Factory\Factory;
 /**
  * @see \Laravel\Socialite\SocialiteManager
  */
-class Activity extends Facade
+class ModuleLayout extends Facade
 {
     /**
      * Get the registered name of the component.
