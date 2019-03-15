@@ -23,6 +23,36 @@ class ModuleLayoutManager extends Manager implements Factory
         return $this->buildProvider(ArticleModule::class);
     }
     
+    protected function createActivityModuleDriver()
+    {
+        return $this->buildProvider(ActivityModule::class);
+    }
+    
+    protected function createPageModuleDriver()
+    {
+        return $this->buildProvider(PageModule::class);
+    }
+    
+    protected function createTextModuleDriver()
+    {
+        return $this->buildProvider(TextModule::class);
+    }
+    
+    protected function createBannerModuleDriver()
+    {
+        return $this->buildProvider(BannerModule::class);
+    }
+    
+    protected function createCategoryModuleDriver()
+    {
+        return $this->buildProvider(CategoryModule::class);
+    }
+    
+    protected function createProductModuleDriver()
+    {
+        return $this->buildProvider(ProductModule::class);
+    }
+    
     public function buildProvider($provider)
     {
         return new $provider();
