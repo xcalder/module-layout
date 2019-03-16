@@ -24,13 +24,19 @@ class CreateModuleLayout extends Migration
         Schema::create('modules_setting', function (Blueprint $table) {
             $table->increments('id');
             $table->bigInteger('module_id');
+            $table->bigInteger('store_id');
+            $table->string('title', 32);
+            $table->string('description')->nullable();
             $table->text('setting');
             $table->tinyInteger('status')->default(1);
         });
         
         Schema::create('modules_route', function (Blueprint $table) {
             $table->increments('id');
+            $table->bigInteger('store_id');
             $table->string('route');
+            $table->string('title', 32);
+            $table->string('description')->nullable();
             $table->tinyInteger('status')->default(1);
         });
         
@@ -38,6 +44,8 @@ class CreateModuleLayout extends Migration
             $table->increments('id');
             $table->bigInteger('module_id');
             $table->bigInteger('modules_setting_id');
+            $table->bigInteger('store_id');
+            $table->bigInteger('route_id');
             $table->tinyInteger('layout')->default(1);
         });
     }

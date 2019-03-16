@@ -16,40 +16,92 @@ class Validation
         //
     }
     
-    public function addActivity($request){
-        $date = date("Y-m-d");
-        $start_time = $request->input('started_at', $date);
+    public function moduleId($request){
+            $rules = ['module_id' => 'required'];
+        return $this->return($request, $rules);
+    }
+    
+    public function moduleSettingId($request){
+        $rules = ['module_setting_id' => 'required'];
+        return $this->return($request, $rules);
+    }
+    
+    public function addModule($request){
         $rules = [
-            'api_token' => 'required',
             'title' => 'required',
             'description' => 'required',
-            'tag' => 'required',
-            'tag_img' => 'required',
-            'started_at' => "required|date_format:Y-m-d H:i:s|after_or_equal:$date",
-            'ended_at' => "required|date_format:Y-m-d H:i:s|after_or_equal:$start_time"
-        ];
-        if(empty($request->input('id'))){
-            $rules['type'] = 'required';
-            $rules['status'] = 'required';
-        }
-        if($request->has('id')){
-            $rules['id'] = 'required';
-        }
-        return $this->return($request, $rules);
-    }
-    
-    public function ActivitysForType($request){
-        $rules = [
-            'api_token' => 'required',
-            'type' => 'required'
+            'code' => 'required',
+            'status' => 'required'
         ];
         return $this->return($request, $rules);
     }
     
-    public function getActivity($request){
+    public function updateModule($request){
         $rules = [
-            'api_token' => 'required',
+            'id' => 'required',
+            'title' => 'required',
+            'description' => 'required',
+            'code' => 'required',
+            'status' => 'required'
+        ];
+        return $this->return($request, $rules);
+    }
+    
+    public function addModuleSetting($request){
+        $rules = [
+            'title' => 'required',
+            'description' => 'required',
+            'module_id' => 'required',
+            'status' => 'required',
+            'setting' => 'required|array'
+        ];
+        return $this->return($request, $rules);
+    }
+    
+    public function updateModuleSetting($request){
+        $rules = [
+            'id' => 'required',
+            'title' => 'required',
+            'description' => 'required',
+            'module_id' => 'required',
+            'status' => 'required',
+            'setting' => 'required|array'
+        ];
+        return $this->return($request, $rules);
+    }
+    
+    public function ModuleRouteId($request){
+        $rules = [
             'id' => 'required'
+        ];
+        return $this->return($request, $rules);
+    }
+    
+    public function addModuleRouteId($request){
+        $rules = [
+            'title' => 'required',
+            'description' => 'required',
+            'status' => 'required',
+            'route' => 'required',
+            'modules_setting_to_route' => 'required|array',
+            'modules_setting_to_route.*.module_id' => 'required',
+            'modules_setting_to_route.*.modules_setting_id' => 'required',
+            'modules_setting_to_route.*.layout' => 'required',
+        ];
+        return $this->return($request, $rules);
+    }
+    
+    public function updateModuleRouteId($request){
+        $rules = [
+            'id' => 'required',
+            'title' => 'required',
+            'description' => 'required',
+            'status' => 'required',
+            'route' => 'required',
+            'modules_setting_to_route' => 'required|array',
+            'modules_setting_to_route.*.module_id' => 'required',
+            'modules_setting_to_route.*.modules_setting_id' => 'required',
+            'modules_setting_to_route.*.layout' => 'required',
         ];
         return $this->return($request, $rules);
     }
