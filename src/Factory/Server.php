@@ -13,6 +13,12 @@ class Server
 {
     public function getModulesList($request){
         $result = Modules::paginate(env('PAGE_LIMIT', 25))->toArray();
+        if(!empty($result['data'])){
+            $general_status = config('all_status.general_status');
+            foreach ($result['data'] as $key=>$value){
+                $result['data'][$key]['status_text'] = $general_status[$value['status']];
+            }
+        }
         return $result;
     }
     
@@ -44,6 +50,14 @@ class Server
         
         if($request->has('status')){
             $data['status'] = $request->input('status');
+        }
+        
+        if($request->has('config_id')){
+            $this->getConfig();
+            if(!in_array($request->input('config_id'), $this->config_ids)){
+                return false;
+            }
+            $data['config_id'] = $request->input('config_id');
         }
         
         $model_module = new Modules();
@@ -202,5 +216,13 @@ class Server
         }
         
         return $data;
+    }
+    
+    private $config_ids = [];
+    private function getConfig(){
+        $config = config('all_status.modules');
+        foreach ($config as $key=>$value){
+            $this->config_ids[] = $value['id'];
+        }
     }
 }

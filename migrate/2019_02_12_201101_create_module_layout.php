@@ -15,6 +15,7 @@ class CreateModuleLayout extends Migration
     {
         Schema::create('modules', function (Blueprint $table) {
             $table->increments('id');
+            $table->bigInteger('config_id');
             $table->string('title', 32);
             $table->string('description')->nullable();
             $table->string('code', 32)->nullable();

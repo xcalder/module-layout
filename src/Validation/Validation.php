@@ -39,6 +39,7 @@ class Validation
     public function updateModule($request){
         $rules = [
             'id' => 'required',
+            'config_id' => 'required',
             'title' => 'required',
             'description' => 'required',
             'code' => 'required',
@@ -49,6 +50,7 @@ class Validation
     
     public function addModuleSetting($request){
         $rules = [
+            'config_id' => 'required',
             'title' => 'required',
             'description' => 'required',
             'module_id' => 'required',
