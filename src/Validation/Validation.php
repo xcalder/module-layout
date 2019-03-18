@@ -60,6 +60,7 @@ class Validation
             'description' => 'required',
             'module_id' => 'required',
             'status' => 'required',
+            'tag' => 'required'
             //'setting' => 'required|array'
         ];
         return $this->return($request, $rules);
@@ -72,6 +73,7 @@ class Validation
             'description' => 'required',
             'module_id' => 'required',
             'status' => 'required',
+            'tag' => 'required'
             //'setting' => 'required|array'
         ];
         return $this->return($request, $rules);

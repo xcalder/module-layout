@@ -126,6 +126,7 @@ class Server
         $data['module_id'] = $request->input('module_id');
         //$data['setting'] = serialize($request->input('setting'));
         $data['status'] = $request->input('status');
+        $data['tag'] = $request->input('tag');
         
         $model_module_setting = new ModulesSetting();
         $result = false;

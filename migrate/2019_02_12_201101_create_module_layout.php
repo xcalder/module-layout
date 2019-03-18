@@ -27,6 +27,7 @@ class CreateModuleLayout extends Migration
             $table->bigInteger('module_id');
             $table->bigInteger('store_id');
             $table->string('title', 32);
+            $table->string('tag', 32);
             $table->string('description')->nullable();
             $table->text('setting');
             $table->tinyInteger('status')->default(1);
