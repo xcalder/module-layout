@@ -31,7 +31,13 @@ class Server
     public function getModuleSettingList($request){
         $result = ModulesSetting::join('modules as m', function($join){
             $join->on('m.id', '=', 'modules_setting.module_id');
-        })->where('module_id', $request->input('module_id'))->select(['m.title', 'modules_setting.id', 'modules_setting.title', 'modules_setting.description', 'modules_setting.setting', 'modules_setting.status'])->paginate(env('PAGE_LIMIT', 25))->toArray();
+        })->where('module_id', $request->input('module_id'))->select(['m.title as module_title', 'modules_setting.id', 'modules_setting.title', 'modules_setting.description', 'modules_setting.setting', 'modules_setting.status'])->paginate(env('PAGE_LIMIT', 25))->toArray();
+        $general_status = config('all_status.general_status');
+        if(!empty($result['data'])){
+            foreach ($result['data'] as $key=>$value){
+                $result['data'][$key]['text_status'] = $general_status[$value['status']];
+            }
+        }
         return $result;
     }
     
@@ -118,7 +124,7 @@ class Server
         $data['title'] = $request->input('title');
         $data['description'] = $request->input('description');
         $data['module_id'] = $request->input('module_id');
-        $data['setting'] = serialize($request->input('setting'));
+        //$data['setting'] = serialize($request->input('setting'));
         $data['status'] = $request->input('status');
         
         $model_module_setting = new ModulesSetting();

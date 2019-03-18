@@ -3,7 +3,7 @@
 namespace ModuleLayout;
 
 use Illuminate\Support\ServiceProvider;
-use Activity\Factory\Factory;
+use ModuleLayout\Factory\Factory;
 
 class ModuleLayoutServiceProvider extends ServiceProvider
 {

@@ -3,7 +3,7 @@
 namespace ModuleLayout\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Activity\Factory\Factory;
+use ModuleLayout\Factory\Factory;
 
 /**
  * @see \Laravel\Socialite\SocialiteManager

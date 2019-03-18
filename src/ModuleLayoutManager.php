@@ -3,7 +3,7 @@
 namespace ModuleLayout;
 
 use Illuminate\Support\Manager;
-use Activity\Factory\Factory;
+use ModuleLayout\Factory\Factory;
 
 class ModuleLayoutManager extends Manager implements Factory
 {

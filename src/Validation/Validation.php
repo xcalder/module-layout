@@ -60,7 +60,7 @@ class Validation
             'description' => 'required',
             'module_id' => 'required',
             'status' => 'required',
-            'setting' => 'required|array'
+            //'setting' => 'required|array'
         ];
         return $this->return($request, $rules);
     }
@@ -72,7 +72,7 @@ class Validation
             'description' => 'required',
             'module_id' => 'required',
             'status' => 'required',
-            'setting' => 'required|array'
+            //'setting' => 'required|array'
         ];
         return $this->return($request, $rules);
     }
