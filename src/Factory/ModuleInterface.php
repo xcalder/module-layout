@@ -10,6 +10,9 @@ namespace ModuleLayout;
  */
 interface ModuleInterface
 {
-    
-    
+    /**
+     * 取模块设置表单
+     * @param unknown $request
+     */
+    public static function getSettingForm($request);
 }

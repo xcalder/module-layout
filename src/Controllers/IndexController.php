@@ -4,6 +4,7 @@ namespace ModuleLayout;
 
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
+use ModuleLayout\Facades\ModuleLayout;
 
 class IndexController extends BaseController
 {
@@ -16,6 +17,24 @@ class IndexController extends BaseController
     }
     
     /**
+     * 取moduleSetting表单
+     * @param Request $request
+     */
+    public function getModuleSettingForm(Request $request){
+        $data = [];
+        $data['status'] =  false;
+        
+        $result = $this->validation->configId($request);
+        if ($result) {
+            $data['error'] = $result;
+            return response()->json($data);
+        }
+        $config_driver = $this->server->getConfigDriver();
+        $driver = $config_driver[$request->input('config_id')];
+        echo ModuleLayout::with($driver)->getSettingForm($request);
+    }
+    
+    /**
      * 取模块列表
      * @param Request $request
      */
@@ -23,6 +42,25 @@ class IndexController extends BaseController
         $data = [];
         $data['status'] = true;
         $data['data'] = $this->server->getModulesList($request);
+        return response()->json($data);
+    }
+    
+    /**
+     * 取模块详情
+     * @param Request $request
+     */
+    public function getModule(Request $request){
+        $data = [];
+        $data['status'] =  false;
+        
+        $result = $this->validation->moduleId($request);
+        if ($result) {
+            $data['error'] = $result;
+            return response()->json($data);
+        }
+        
+        $data['status'] = true;
+        $data['data'] = $this->server->getModule($request);
         return response()->json($data);
     }
     

@@ -10,6 +10,18 @@ Route::group(['prefix' => 'api'], function($router){
             'description' => '取模块列表'
         ]);
         
+        $router->get('module', [
+            'group' => 'modules',
+            'uses' => 'ModuleLayout\IndexController@getModule',
+            'description' => '取模块详情'
+        ]);
+        
+        $router->get('module_setting_form', [
+            'group' => 'modules',
+            'uses' => 'ModuleLayout\IndexController@getModuleSettingForm',
+            'description' => '取模块设置表单'
+        ]);
+        
         $router->get('module_setting_list', [
             'group' => 'modules',
             'uses' => 'ModuleLayout\IndexController@getModuleSettingList',

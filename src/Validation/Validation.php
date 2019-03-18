@@ -21,6 +21,11 @@ class Validation
         return $this->return($request, $rules);
     }
     
+    public function configId($request){
+        $rules = ['config_id' => 'required'];
+        return $this->return($request, $rules);
+    }
+    
     public function moduleSettingId($request){
         $rules = ['module_setting_id' => 'required'];
         return $this->return($request, $rules);

@@ -22,8 +22,16 @@ class Server
         return $result;
     }
     
+    public function getModule($request){
+        $result = Modules::find($request->input('module_id'));
+        
+        return $result;
+    }
+    
     public function getModuleSettingList($request){
-        $result = ModulesSetting::where('module_id', $request->input('module_id'))->paginate(env('PAGE_LIMIT', 25))->toArray();
+        $result = ModulesSetting::join('modules as m', function($join){
+            $join->on('m.id', '=', 'modules_setting.module_id');
+        })->where('module_id', $request->input('module_id'))->select(['m.title', 'modules_setting.id', 'modules_setting.title', 'modules_setting.description', 'modules_setting.setting', 'modules_setting.status'])->paginate(env('PAGE_LIMIT', 25))->toArray();
         return $result;
     }
     
@@ -80,7 +88,8 @@ class Server
     public function delModule($request){
         $data = [];
         $data['status'] = false;
-        $count_module_setting = ModulesSetting::where('module_id', $request->input('id'))->count();
+        $module_id = $request->input('module_id');
+        $count_module_setting = ModulesSetting::where('module_id', $module_id)->count();
         
         if($count_module_setting > 0){
             $data['error'] = '此模块下还有'.$count_module_setting.'个设置，不能删除';
@@ -89,7 +98,6 @@ class Server
         
         DB::beginTransaction();
         try{
-            $module_id = $request->input('id');
             Modules::where('id', $module_id)->delete();
             ModulesSetting::where('module_id', $module_id)->delete();
             ModulesSettingToRoute::where('module_id', $module_id)->delete();
@@ -219,10 +227,17 @@ class Server
     }
     
     private $config_ids = [];
+    private $config_driver = [];
     private function getConfig(){
         $config = config('all_status.modules');
         foreach ($config as $key=>$value){
             $this->config_ids[] = $value['id'];
+            $this->config_driver[$value['id']] = $key;
         }
+    }
+    
+    public function getConfigDriver(){
+        $this->getConfig();
+        return $this->config_driver;
     }
 }
