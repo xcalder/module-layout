@@ -318,4 +318,27 @@ class IndexController extends BaseController
         $data['status'] = $result;
         return response()->json($data);
     }
+    
+    /**
+     * 修改设置内容
+     * @param Request $request
+     */
+    public function updateSetting(Request $request){
+        $data = [];
+        $data['status'] =  false;
+        
+        $result = $this->validation->updateSetting($request);
+        if ($result) {
+            $data['error'] = $result;
+            return response()->json($data);
+        }
+        
+        $config_driver = $this->server->getConfigDriver();
+        $driver = $config_driver[$request->input('config_id')] ?? '';
+        if(!empty($driver)){
+            $data['status'] = ModuleLayout::with($driver)->updateSetting($request);
+        }
+        
+        return response()->json($data);
+    }
 }

@@ -8,6 +8,7 @@ use ModuleLayout\Models\Modules;
 use ModuleLayout\Models\ModulesSetting;
 use ModuleLayout\Models\ModulesSettingToRoute;
 use ModuleLayout\Models\ModulesRoute;
+use ModuleLayout\Facades\ModuleLayout;
 
 class Server
 {
@@ -31,7 +32,7 @@ class Server
     public function getModuleSettingList($request){
         $result = ModulesSetting::join('modules as m', function($join){
             $join->on('m.id', '=', 'modules_setting.module_id');
-        })->where('module_id', $request->input('module_id'))->select(['m.title as module_title', 'modules_setting.id', 'modules_setting.title', 'modules_setting.description', 'modules_setting.setting', 'modules_setting.status'])->paginate(env('PAGE_LIMIT', 25))->toArray();
+        })->where('module_id', $request->input('module_id'))->select(['m.title as module_title', 'modules_setting.id', 'modules_setting.title', 'modules_setting.description', 'modules_setting.setting', 'modules_setting.status', 'modules_setting.tag'])->paginate(env('PAGE_LIMIT', 25))->toArray();
         $general_status = config('all_status.general_status');
         if(!empty($result['data'])){
             foreach ($result['data'] as $key=>$value){
@@ -43,6 +44,12 @@ class Server
     
     public function getModuleSetting($request){
         $result = ModulesSetting::find($request->input('module_setting_id'));
+        if(!empty($result)){
+            $config_driver = $this->getConfigDriver();
+            $driver = $config_driver[$request->input('config_id')];
+            $setting = ModuleLayout::with($driver)->doWithSetting(unserialize($result['setting']) ?? []);
+            $result['setting'] = $setting;
+        }
         return $result;
     }
     

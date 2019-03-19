@@ -10,6 +10,12 @@ Route::group(['prefix' => 'api'], function($router){
             'description' => '取模块列表'
         ]);
         
+        $router->post('upate_setting', [
+            'group' => 'modules',
+            'uses' => 'ModuleLayout\IndexController@updateSetting',
+            'description' => '更新设置'
+        ]);
+        
         $router->get('module', [
             'group' => 'modules',
             'uses' => 'ModuleLayout\IndexController@getModule',
