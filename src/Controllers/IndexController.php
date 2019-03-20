@@ -70,13 +70,13 @@ class IndexController extends BaseController
     public function getModuleSettingList(Request $request){
         $data = [];
         $data['status'] =  false;
-        
+        /*
         $result = $this->validation->moduleId($request);
         if ($result) {
             $data['error'] = $result;
             return response()->json($data);
         }
-        
+        */
         $data['status'] = true;
         $data['data'] = $this->server->getModuleSettingList($request);
         return response()->json($data);

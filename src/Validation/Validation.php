@@ -98,7 +98,7 @@ class Validation
             'status' => 'required',
             'route' => 'required',
             'modules_setting_to_route' => 'required|array',
-            'modules_setting_to_route.*.module_id' => 'required',
+            //'modules_setting_to_route.*.module_id' => 'required',
             'modules_setting_to_route.*.modules_setting_id' => 'required',
             'modules_setting_to_route.*.layout' => 'required',
         ];
@@ -113,7 +113,7 @@ class Validation
             'status' => 'required',
             'route' => 'required',
             'modules_setting_to_route' => 'required|array',
-            'modules_setting_to_route.*.module_id' => 'required',
+            //'modules_setting_to_route.*.module_id' => 'required',
             'modules_setting_to_route.*.modules_setting_id' => 'required',
             'modules_setting_to_route.*.layout' => 'required',
         ];

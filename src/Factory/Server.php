@@ -32,7 +32,13 @@ class Server
     public function getModuleSettingList($request){
         $result = ModulesSetting::join('modules as m', function($join){
             $join->on('m.id', '=', 'modules_setting.module_id');
-        })->where('module_id', $request->input('module_id'))->select(['m.title as module_title', 'modules_setting.id', 'modules_setting.title', 'modules_setting.description', 'modules_setting.setting', 'modules_setting.status', 'modules_setting.tag'])->paginate(env('PAGE_LIMIT', 25))->toArray();
+        });
+        
+        if($request->has('module_id')){
+            $result = $result->where('m.module_id', $request->input('module_id'));
+        }
+        
+        $result = $result->where('modules_setting.status', 1)->select(['m.title as module_title', 'modules_setting.id', 'modules_setting.module_id','modules_setting.title', 'modules_setting.description', 'modules_setting.setting', 'modules_setting.status', 'modules_setting.tag'])->paginate($request->input('offset', env('PAGE_LIMIT', 25)))->toArray();
         $general_status = config('all_status.general_status');
         if(!empty($result['data'])){
             foreach ($result['data'] as $key=>$value){
@@ -177,7 +183,7 @@ class Server
     }
     
     public function getModuleRoute($request){
-        $result = ModulesRoute::find($request->input('id'));
+        $result = ModulesRoute::with(['modulesSettingToRoute'])->find($request->input('id'));
         return $result;
     }
     
@@ -198,6 +204,10 @@ class Server
         $store_id = $user['store_id'] ?? 0;
         DB::beginTransaction();
         try{
+            $modules_setting_ids = array_column($modules_setting_to_route, 'modules_setting_id');
+            $module_setting = ModulesSetting::whereIn('id', $modules_setting_ids)->select(['id', 'module_id'])->get()->toArray();
+            $module_setting = array_under_reset($module_setting, 'id');
+            
             if($request->has('id')){
                 $id = $request->input('id');
                 $result = $model_module_route->where('id', $id)->update($data);
@@ -209,6 +219,7 @@ class Server
             foreach ($modules_setting_to_route as $key=>$value){
                 $modules_setting_to_route[$key]['store_id'] = $store_id;
                 $modules_setting_to_route[$key]['route_id'] = $id;
+                $modules_setting_to_route[$key]['module_id'] = $module_setting[$value['modules_setting_id']]['module_id'];
             }
             ModulesSettingToRoute::where('route_id', $id)->delete();
             ModulesSettingToRoute::insert($modules_setting_to_route);

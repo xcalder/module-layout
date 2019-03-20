@@ -31,4 +31,10 @@ class ModulesRoute extends Model
      * @var bool
      */
     public $timestamps = false;
+    
+    
+    public function modulesSettingToRoute()
+    {
+        return $this->hasMany('ModuleLayout\Models\ModulesSettingToRoute', 'modules_setting_id', 'id');
+    }
 }
