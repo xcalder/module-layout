@@ -10,6 +10,18 @@ use ModuleLayout\Models\ModulesSetting;
 class PageModule implements ModuleInterface
 {
     /**
+     * 处理setting到html
+     * @param unknown $setting
+     */
+    public static function viewHtml($setting){
+        $html = '';
+        $setting = unserialize($setting);
+        
+        $html = $setting;
+        return $html;
+    }
+    
+    /**
      * 处理setting
      * @param unknown $setting
      */

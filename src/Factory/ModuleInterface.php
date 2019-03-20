@@ -27,4 +27,10 @@ interface ModuleInterface
      * @param unknown $setting
      */
     public static function doWithSetting($setting);
+    
+    /**
+     * 处理setting 到html
+     * @param unknown $setting
+     */
+    public static function viewHtml($setting);
 }

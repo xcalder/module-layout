@@ -35,7 +35,7 @@ class Server
         });
         
         if($request->has('module_id')){
-            $result = $result->where('m.module_id', $request->input('module_id'));
+            $result = $result->where('m.id', $request->input('module_id'));
         }
         
         $result = $result->where('modules_setting.status', 1)->select(['m.title as module_title', 'modules_setting.id', 'modules_setting.module_id','modules_setting.title', 'modules_setting.description', 'modules_setting.setting', 'modules_setting.status', 'modules_setting.tag'])->paginate($request->input('offset', env('PAGE_LIMIT', 25)))->toArray();
@@ -264,5 +264,79 @@ class Server
     public function getConfigDriver(){
         $this->getConfig();
         return $this->config_driver;
+    }
+    
+    /**
+     * 取布局到view
+     * @param unknown $request
+     */
+    public function getRouteToView($request){
+        $modules_settings = false;
+        $route = $request->input('route', '');
+        if(empty($route)){
+            return $result;
+        }
+        
+        $modules_routes = $this->getModulesRoutes($request);
+        $modules_settings = $this->doWithSetting($modules_routes);
+        
+        return $modules_settings;
+    }
+    
+    private function doWithSetting($modules_routes){
+        if(empty($modules_routes)){
+            return $modules_routes;
+        }
+        $modules_settings = [];
+        $drivers = $this->getConfigDriver();
+        foreach ($modules_routes as $value){
+            if(!empty($value['modules_setting_to_route'])){
+                foreach ($value['modules_setting_to_route'] as $v){
+                    $driver = $drivers[$v['config_id']];
+                    $v['html'] = ModuleLayout::with($driver)->viewHtml($v['setting']);
+                    unset($v['setting']);
+                    $modules_settings[] = $v;
+                }
+            }
+        }
+        if(!empty($modules_settings)){
+            //排序
+            $sort_order = array_column($modules_settings, 'sort_order');
+            array_multisort($sort_order,SORT_DESC,$modules_settings);
+            
+            //排序
+            $modules_settings = array_under_reset($modules_settings, 'layout', 2);
+        }
+        return $modules_settings;
+    }
+    
+    private function getModulesRoutes($request){
+        $route = $request->input('route', '');
+        $routes = explode('/', $route);
+        $routes = array_filter($routes);
+        
+        $route_ = '/';
+        $modules_routes = ModulesRoute::with(['modulesSettingToRoute'=>function($query){
+            $query->join('modules_setting as ms', function($join){
+                $join->on('modules_setting_to_route.modules_setting_id', '=', 'ms.id');
+            });
+            $query->join('modules as m', function($join){
+                $join->on('m.id', '=', 'ms.module_id');
+            });
+            $query->where('ms.status', 1);
+            $query->select(['m.config_id', 'ms.tag', 'ms.setting', 'modules_setting_to_route.layout', 'modules_setting_to_route.sort_order', 'modules_setting_to_route.route_id']);
+        }]);
+        $i = 0;
+        foreach ($routes as $route){
+            if($i == 0){
+                $modules_routes = $modules_routes->where('route', 'like', $route_.$route.'%');
+            }else{
+                $modules_routes = $modules_routes->orWhere('route', 'like', $route_.$route.'%');
+            }
+            $route_ = $route.'/';
+            $i++;
+        }
+        
+        return $modules_routes = $modules_routes->select('id')->get()->toArray();
     }
 }

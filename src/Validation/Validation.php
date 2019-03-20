@@ -91,6 +91,14 @@ class Validation
         return $this->return($request, $rules);
     }
     
+    public function getRouteToView($request){
+        $rules = [
+            'route' => 'required',
+            'client' => 'required'
+        ];
+        return $this->return($request, $rules);
+    }
+    
     public function addModuleRouteId($request){
         $rules = [
             'title' => 'required',

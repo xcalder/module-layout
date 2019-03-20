@@ -4,6 +4,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'api'], function($router){
     $router->group(['prefix' => 'modules'], function($router){
+        $router->get('get_route_to_view', [
+            'group' => 'modules',
+            'uses' => 'ModuleLayout\IndexController@getRouteToView',
+            'description' => '取布局到页面'
+        ]);
+        
         $router->get('module_list', [
             'group' => 'modules',
             'uses' => 'ModuleLayout\IndexController@getModulesList',

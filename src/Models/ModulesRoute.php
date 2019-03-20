@@ -35,6 +35,6 @@ class ModulesRoute extends Model
     
     public function modulesSettingToRoute()
     {
-        return $this->hasMany('ModuleLayout\Models\ModulesSettingToRoute', 'modules_setting_id', 'id');
+        return $this->hasMany('ModuleLayout\Models\ModulesSettingToRoute', 'route_id', 'id');
     }
 }

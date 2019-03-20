@@ -341,4 +341,27 @@ class IndexController extends BaseController
         
         return response()->json($data);
     }
+    
+    /**
+     * 取布局到页面
+     * @param Request $request
+     */
+    public function getRouteToView(Request $request){
+        $data = [];
+        $data['status'] =  false;
+        
+        $result = $this->validation->getRouteToView($request);
+        if ($result) {
+            $data['error'] = $result;
+            return response()->json($data);
+        }
+        
+        $result = $this->server->getRouteToView($request);
+        if($result){
+            $data['status'] = true;
+            $data['data'] = $result;
+        }
+        
+        return response()->json($data);
+    }
 }

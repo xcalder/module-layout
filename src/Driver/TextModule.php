@@ -9,6 +9,18 @@ use ModuleLayout\Models\ModulesSetting;
 class TextModule implements ModuleInterface
 {
     /**
+     * 处理setting到html
+     * @param unknown $setting
+     */
+    public static function viewHtml($setting){
+        $html = '';
+        $setting = unserialize($setting);
+        
+        $html = $setting['content'];
+        return $html;
+    }
+    
+    /**
      * 处理setting
      * @param unknown $setting
      */
