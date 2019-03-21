@@ -92,9 +92,6 @@ class Server
         if($request->has('id')){
             $result = $model_module->where('id', $request->input('id'))->update($data);
         }else{
-            $user = Auth::user();
-            $store_id = $user['store_id'] ?? 0;
-            $data['store_id'] = $store_id;
             $result = $model_module->insert($data);
         }
         
@@ -140,6 +137,8 @@ class Server
         //$data['setting'] = serialize($request->input('setting'));
         $data['status'] = $request->input('status');
         $data['tag'] = $request->input('tag');
+        $data['limit'] = $request->input('limit', 8);
+        $data['show_tag'] = $request->input('show_tag', 0);
         
         $model_module_setting = new ModulesSetting();
         $result = false;
@@ -299,6 +298,7 @@ class Server
                 }
             }
         }
+        $return = [];
         if(!empty($modules_settings)){
             //排序
             $sort_order = array_column($modules_settings, 'sort_order');
@@ -306,8 +306,18 @@ class Server
             
             //排序
             $modules_settings = array_under_reset($modules_settings, 'layout', 2);
+            return $modules_settings;
+            foreach ($modules_settings as $layout=>$value){
+                $html = '';
+                if(!empty($value)){
+                    foreach ($value as $v){
+                        $html .= $v['html'];
+                    }
+                }
+                $return[$layout] = $html;
+            }
         }
-        return $modules_settings;
+        return $return;
     }
     
     private function getModulesRoutes($request){
@@ -324,7 +334,7 @@ class Server
                 $join->on('m.id', '=', 'ms.module_id');
             });
             $query->where('ms.status', 1);
-            $query->select(['m.config_id', 'ms.tag', 'ms.setting', 'modules_setting_to_route.layout', 'modules_setting_to_route.sort_order', 'modules_setting_to_route.route_id']);
+            $query->select(['m.config_id', 'ms.tag', 'ms.setting', 'ms.limit', 'ms.show_tag', 'modules_setting_to_route.layout', 'modules_setting_to_route.sort_order', 'modules_setting_to_route.route_id']);
         }]);
         $i = 0;
         foreach ($routes as $route){
@@ -338,5 +348,55 @@ class Server
         }
         
         return $modules_routes = $modules_routes->select('id')->get()->toArray();
+    }
+    
+    /**
+     * 处理商品到html
+     * @param unknown $products
+     */
+    public function setProductHtml($products){
+        $html = '';
+        if(!empty($products['data'])){
+            foreach ($products['data'] as $product){
+                $thumb_img = $product['thumb_img'];
+                $title = $product['title'];
+                $description = $product['description'];
+                $min_price = $product['min_price'];
+                $price = $product['price'];
+                $sales_volume = $product['sales_volume'];
+                $unit_code = $product['unit_code'];
+                $count_commont = $product['count_commont'];
+                $url = url('product/product_info?product_id='.$product['id']);
+                $type = '';
+                if($product['type'] == 1){
+                    $type = '<span class="tag-ico bg-blue mr-1">套餐</span>';
+                }
+                $activitys = '';
+                if(!empty($product['activitys'])){
+                    foreach ($product['activitys'] as $key=>$value){
+                        $activitys .= '<span class="tag-ico mr-1" style="background-color:'.$value['tag_type'].'">'.$value['tag'].'</span>';
+                    }
+                }
+                $html .= <<<ETO
+                    <div class="col-md-3 p-1">
+                        <div class="thumbnail mb-0">
+                            <a target="_blank" href="$url">
+                                <img src="$thumb_img" alt="$title">
+                            </a>
+                            <div class="caption h-158">
+                                <p class="m-0 one-row">
+                                    <a target="_blank" href="$url">$title</a>
+                                </p>
+                                <p class="text-muted m-0 two-row">$description</p>
+                                <p><span class="price">￥$min_price</span><del class="ml-3 text-muted">￥$price</del></p>
+                                <p><span>销量:$sales_volume$unit_code</span><span class="pull-right">评论:$count_commont</span></p>
+                                <p class="mb-0 inline-block"><a target="_blank" href="$url" class="activity-span">$type$activitys</a><span class="a pull-right"><i class="glyphicon glyphicon-comment"></i></span></p>
+                    </div>
+                </div>
+            </div>
+ETO;
+            }
+        }
+        return $html;
     }
 }

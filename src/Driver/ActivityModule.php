@@ -2,10 +2,10 @@
 
 namespace ModuleLayout;
 
-use Illuminate\Support\Facades\DB;
-use ModuleLayout\ModuleInterface;
 use ModuleLayout\Models\ModulesSetting;
 use Activity\Models\ProductActivity;
+use Activity\Models\ProductActivityRuleProducts;
+use App\Service\ProductService;
 
 class ActivityModule implements ModuleInterface
 {
@@ -17,7 +17,23 @@ class ActivityModule implements ModuleInterface
         $html = '';
         $setting = unserialize($setting);
         
-        $html = $setting;
+        $activity_ids = $setting['activitys'] ?? [];
+        if(empty($activity_ids)){
+            return $html;
+        }
+        $products = ProductActivityRuleProducts::whereIn('activity_id', $activity_ids)->select(['product_id'])->groupBy('product_id')->limit($setting['limit'] ?? 8)->get()->toArray();
+        $product_ids = lumen_array_column($products, 'product_id');
+        
+        if(empty($product_ids)){
+            return $html;
+        }
+        
+        $product_service = new ProductService();
+        $products = $product_service->getProductList(['product_ids' => $product_ids]);
+        
+        $server = new Server();
+        $html = $server->setProductHtml($products);
+        
         return $html;
     }
     

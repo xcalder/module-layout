@@ -17,7 +17,7 @@ class CategoryModule implements ModuleInterface
         $html = '';
         $setting = unserialize($setting);
         
-        $html = $setting;
+        //$html = $setting;
         return $html;
     }
     

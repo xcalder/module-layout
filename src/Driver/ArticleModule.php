@@ -2,8 +2,6 @@
 
 namespace ModuleLayout;
 
-use Illuminate\Support\Facades\DB;
-use ModuleLayout\ModuleInterface;
 use ModuleLayout\Models\ModulesSetting;
 use function Opis\Closure\serialize;
 use App\Models\Article;
@@ -18,7 +16,7 @@ class ArticleModule implements ModuleInterface
         $html = '';
         $setting = unserialize($setting);
         
-        $html = $setting;
+        $html = self::setArticle($setting);
         return $html;
     }
     
@@ -311,5 +309,21 @@ class ArticleModule implements ModuleInterface
                 }
             </script>
 ETO;
+    }
+        
+    private static function setArticle($setting){
+        $html = '';
+        $articles = [];
+        $model_article = new Article();
+        if(!empty($setting['articles'])){
+            $model_article = $model_article->whereIn('id', $setting['articles']);
+        }
+        if(!empty($setting['categorys'])){
+            $model_article = $model_article->whereIn('child_category_id', $setting['categorys']);
+        }
+        $articles = $model_article->->get()->toArray();
+        return $setting;
+        return $articles;
+        return $html;
     }
 }

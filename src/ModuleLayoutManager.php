@@ -18,6 +18,11 @@ class ModuleLayoutManager extends Manager implements Factory
         return $this->driver($driver);
     }
     
+    protected function createModuleInModuleDriver()
+    {
+        return $this->buildProvider(ModuleInModule::class);
+    }
+    
     protected function createArticleModuleDriver()
     {
         return $this->buildProvider(ArticleModule::class);

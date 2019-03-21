@@ -17,7 +17,7 @@ class BannerModule implements ModuleInterface
         $html = '';
         $setting = unserialize($setting);
         
-        $html = $setting;
+        $html = self::setBanner($setting);
         return $html;
     }
     
@@ -180,5 +180,53 @@ class BannerModule implements ModuleInterface
                 }
             </script>
 ETO;
+    }
+        
+    private static function setBanner($setting){
+        $html = '';
+        if(empty($setting['item'])){
+            return $html;
+        }
+        
+        $banner_id = 'banner-'.rand(999, 9999);
+        $i = 0;
+        $ol_li_html = '';
+        $item_html = '';
+        foreach ($setting['item'] as $item){
+            if($i == 0){
+                $ol_li_html .= '<li data-target="#'.$banner_id.'" data-slide-to="'.$i.'" class="active"></li>';
+                $item_html .= '<div class="item active"><img src="'. url('storage/images/'.$item['img']).'" alt="'.$item['title'].'"><div class="carousel-caption">'.$item['title'].'</div></div>';
+            }else{
+                $ol_li_html .= '<li data-target="#'.$banner_id.'" data-slide-to="'.$i.'"></li>';
+                $item_html .= '<div class="item"><img src="'. url('storage/images/'.$item['img']).'" alt="'.$item['title'].'"><div class="carousel-caption">'.$item['title'].'</div></div>';
+            }
+            $i++;
+        }
+        
+        $html = <<<ETO
+<div id="$banner_id" class="carousel slide" data-ride="carousel">
+  <!-- Indicators -->
+  <ol class="carousel-indicators">
+    $ol_li_html
+  </ol>
+
+  <!-- Wrapper for slides -->
+  <div class="carousel-inner" role="listbox">
+    $item_html
+  </div>
+
+  <!-- Controls -->
+  <a class="left carousel-control" href="#$banner_id" role="button" data-slide="prev">
+    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+    <span class="sr-only">上一张</span>
+  </a>
+  <a class="right carousel-control" href="#$banner_id" role="button" data-slide="next">
+    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    <span class="sr-only">下一张</span>
+  </a>
+</div>
+
+ETO;
+        return $html;
     }
 }
