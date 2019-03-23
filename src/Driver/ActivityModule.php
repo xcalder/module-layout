@@ -15,13 +15,17 @@ class ActivityModule implements ModuleInterface
      */
     public static function viewHtml($setting){
         $html = '';
-        $setting = unserialize($setting);
+        $limit = $setting['limit'] ?? 8;
+        $show_tag = $setting['show_tag'] ?? 1;
+        $tag = $setting['tag'];
+        $layout = $setting['layout'] ?? 3;
+        $setting = unserialize($setting['setting']);
         
         $activity_ids = $setting['activitys'] ?? [];
         if(empty($activity_ids)){
             return $html;
         }
-        $products = ProductActivityRuleProducts::whereIn('activity_id', $activity_ids)->select(['product_id'])->groupBy('product_id')->limit($setting['limit'] ?? 8)->get()->toArray();
+        $products = ProductActivityRuleProducts::whereIn('activity_id', $activity_ids)->select(['product_id'])->groupBy('product_id')->limit($limit)->get()->toArray();
         $product_ids = lumen_array_column($products, 'product_id');
         
         if(empty($product_ids)){
@@ -32,7 +36,24 @@ class ActivityModule implements ModuleInterface
         $products = $product_service->getProductList(['product_ids' => $product_ids]);
         
         $server = new Server();
-        $html = $server->setProductHtml($products);
+        $product_html = $server->setProductHtml($products, $layout);
+        
+        $more_url = url();
+        $html = <<<ETO
+            <div class="panel panel-default">
+ETO;
+        if($show_tag == 1){
+            $html .= <<<ETO
+            <div class="panel-heading">
+                <h4 class="panel-title">$tag<a href="$more_url" class="pull-right f-14">更多>></a></h4>
+            </div>
+ETO;
+        }
+        
+        $html .= <<<ETO
+              <div class="panel-body p-0">$product_html</div>
+            </div>
+ETO;
         
         return $html;
     }

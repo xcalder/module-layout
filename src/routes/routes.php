@@ -10,6 +10,12 @@ Route::group(['prefix' => 'api'], function($router){
             'description' => '取布局到页面'
         ]);
         
+        $router->get('get_module_setting_view', [
+            'group' => 'modules',
+            'uses' => 'ModuleLayout\IndexController@getModuleSettingToView',
+            'description' => '取单个模块设置的html'
+        ]);
+        
         $router->get('module_list', [
             'group' => 'modules',
             'uses' => 'ModuleLayout\IndexController@getModulesList',

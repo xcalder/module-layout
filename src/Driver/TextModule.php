@@ -14,7 +14,7 @@ class TextModule implements ModuleInterface
      */
     public static function viewHtml($setting){
         $html = '';
-        $setting = unserialize($setting);
+        $setting = unserialize($setting['setting']);
         
         $html = $setting['content'];
         return $html;

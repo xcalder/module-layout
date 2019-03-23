@@ -3,9 +3,8 @@
 namespace ModuleLayout;
 
 use App\Models\Product;
-use Illuminate\Support\Facades\DB;
-use ModuleLayout\ModuleInterface;
 use ModuleLayout\Models\ModulesSetting;
+use App\Service\ProductService;
 
 class ProductModule implements ModuleInterface
 {
@@ -15,9 +14,44 @@ class ProductModule implements ModuleInterface
      */
     public static function viewHtml($setting){
         $html = '';
-        $setting = unserialize($setting);
+        $limit = $setting['limit'] ?? 8;
+        $show_tag = $setting['show_tag'] ?? 1;
+        $tag = $setting['tag'];
+        $layout = $setting['layout'] ?? 3;
+        $setting = unserialize($setting['setting']);
         
-        //$html = $setting;
+        $product_ids = $setting['products'] ?? [];
+        $category = $setting['category'] ?? [];
+        $products = new Product();
+        if(!empty($product_ids)){
+            $products = $products->whereIn('id', $product_ids);
+        }
+        if(!empty($category)){
+            $products = $products->whereIn('child_category_id', $category);
+        }
+        
+        $products = $products->select(['id'])->groupBy('id')->limit($limit)->get()->toArray();
+        $product_ids = lumen_array_column($products, 'id');
+        
+        if(empty($product_ids)){
+            return $html;
+        }
+        
+        $product_service = new ProductService();
+        $products = $product_service->getProductList(['product_ids' => $product_ids]);
+        
+        $server = new Server();
+        $product_html = $server->setProductHtml($products, $layout);
+        
+        $html = <<<ETO
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">$tag</h4>
+              </div>
+              <div class="panel-body p-0">$product_html</div>
+            </div>
+ETO;
+        
         return $html;
     }
     

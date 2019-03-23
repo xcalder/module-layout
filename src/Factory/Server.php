@@ -139,6 +139,7 @@ class Server
         $data['tag'] = $request->input('tag');
         $data['limit'] = $request->input('limit', 8);
         $data['show_tag'] = $request->input('show_tag', 0);
+        $data['code'] = $request->input('code', 0);
         
         $model_module_setting = new ModulesSetting();
         $result = false;
@@ -265,10 +266,23 @@ class Server
         return $this->config_driver;
     }
     
-    /**
-     * 取布局到view
-     * @param unknown $request
-     */
+    public function getModuleSettingToView($request){
+        $html = '';
+        $drivers = $this->getConfigDriver();
+        $module_setting = ModulesSetting::join('modules as m', function($join){
+            $join->on('m.id', '=', 'modules_setting.module_id');
+        })->join('modules_setting_to_route as mstr', function($join){
+            $join->on('mstr.modules_setting_id', '=', 'modules_setting.id');
+        })->select(['m.config_id', 'modules_setting.id', 'modules_setting.tag', 'modules_setting.setting', 'modules_setting.limit', 'modules_setting.show_tag', 'modules_setting.code', 'mstr.layout'])->where('modules_setting.status', 1)->where('modules_setting.id', $request->input('id', 0))->where('mstr.id', $request->input('modules_setting_to_route_id', 0))->first();
+        $config_id = $module_setting['config_id'] ?? 0;
+        $driver = $drivers[$config_id] ?? 0;
+        if(empty($driver)){
+            return $html;
+        }
+        $html = ModuleLayout::with($driver)->viewHtml($module_setting);
+        return $html;
+    }
+    
     public function getRouteToView($request){
         $modules_settings = false;
         $route = $request->input('route', '');
@@ -276,48 +290,24 @@ class Server
             return $result;
         }
         
-        $modules_routes = $this->getModulesRoutes($request);
-        $modules_settings = $this->doWithSetting($modules_routes);
-        
-        return $modules_settings;
-    }
-    
-    private function doWithSetting($modules_routes){
-        if(empty($modules_routes)){
-            return $modules_routes;
-        }
+        $result = $this->getModulesRoutes($request);
         $modules_settings = [];
-        $drivers = $this->getConfigDriver();
-        foreach ($modules_routes as $value){
-            if(!empty($value['modules_setting_to_route'])){
-                foreach ($value['modules_setting_to_route'] as $v){
-                    $driver = $drivers[$v['config_id']];
-                    $v['html'] = ModuleLayout::with($driver)->viewHtml($v['setting']);
-                    unset($v['setting']);
-                    $modules_settings[] = $v;
-                }
-            }
-        }
-        $return = [];
-        if(!empty($modules_settings)){
-            //排序
-            $sort_order = array_column($modules_settings, 'sort_order');
-            array_multisort($sort_order,SORT_DESC,$modules_settings);
-            
-            //排序
-            $modules_settings = array_under_reset($modules_settings, 'layout', 2);
-            return $modules_settings;
-            foreach ($modules_settings as $layout=>$value){
-                $html = '';
-                if(!empty($value)){
-                    foreach ($value as $v){
-                        $html .= $v['html'];
+        if(!empty($result)){
+            $layouts = [];
+            $layout_modules_settings = [];
+            foreach ($result as $value){
+                if(!empty($value['modules_setting_to_route'])){
+                    foreach ($value['modules_setting_to_route'] as $v){
+                        $layouts[] = $v['layout'];
+                        $layout_modules_settings[$v['layout']][] = url('api/modules/get_module_setting_view?api_token='.$request->input('api_token').'&id='.$v['id'].'&modules_setting_to_route_id='.$v['modules_setting_to_route_id']);
                     }
                 }
-                $return[$layout] = $html;
+            }
+            foreach ($layouts as $layout){
+                $modules_settings[$layout] = $layout_modules_settings[$layout];
             }
         }
-        return $return;
+        return $modules_settings;
     }
     
     private function getModulesRoutes($request){
@@ -325,7 +315,6 @@ class Server
         $routes = explode('/', $route);
         $routes = array_filter($routes);
         
-        $route_ = '/';
         $modules_routes = ModulesRoute::with(['modulesSettingToRoute'=>function($query){
             $query->join('modules_setting as ms', function($join){
                 $join->on('modules_setting_to_route.modules_setting_id', '=', 'ms.id');
@@ -334,16 +323,24 @@ class Server
                 $join->on('m.id', '=', 'ms.module_id');
             });
             $query->where('ms.status', 1);
-            $query->select(['m.config_id', 'ms.tag', 'ms.setting', 'ms.limit', 'ms.show_tag', 'modules_setting_to_route.layout', 'modules_setting_to_route.sort_order', 'modules_setting_to_route.route_id']);
+            $query->select(['m.config_id', 'ms.id', 'modules_setting_to_route.layout', 'modules_setting_to_route.route_id', 'modules_setting_to_route.id as modules_setting_to_route_id'])->orderBy('modules_setting_to_route.sort_order', 'desc');
         }]);
         $i = 0;
-        foreach ($routes as $route){
-            if($i == 0){
-                $modules_routes = $modules_routes->where('route', 'like', $route_.$route.'%');
-            }else{
-                $modules_routes = $modules_routes->orWhere('route', 'like', $route_.$route.'%');
+        $count_routes = count($routes);
+        $route_ = '/';
+        foreach ($routes as $key=>$route){
+            $like = $route_.$route;
+            if($i < $count_routes - 1){
+                $like .= '/*';
             }
-            $route_ = $route.'/';
+            $like .= '%';
+            
+            if($i == 0){
+                $modules_routes = $modules_routes->where('route', 'like', $like);
+            }else{
+                $modules_routes = $modules_routes->orWhere('route', 'like', $like);
+            }
+            $route_ = $route_.$route.'/';
             $i++;
         }
         
@@ -354,8 +351,12 @@ class Server
      * 处理商品到html
      * @param unknown $products
      */
-    public function setProductHtml($products){
+    public function setProductHtml($products, $layout = 1){
         $html = '';
+        $col_num = 3;
+        if(in_array($layout, [3, 4])){
+            $col_num = 12;
+        }
         if(!empty($products['data'])){
             foreach ($products['data'] as $product){
                 $thumb_img = $product['thumb_img'];
@@ -378,8 +379,8 @@ class Server
                     }
                 }
                 $html .= <<<ETO
-                    <div class="col-md-3 p-1">
-                        <div class="thumbnail mb-0">
+                    <div class="col-md-$col_num p-0">
+                        <div class="thumbnail mb-0 border-0">
                             <a target="_blank" href="$url">
                                 <img src="$thumb_img" alt="$title">
                             </a>
@@ -390,7 +391,7 @@ class Server
                                 <p class="text-muted m-0 two-row">$description</p>
                                 <p><span class="price">￥$min_price</span><del class="ml-3 text-muted">￥$price</del></p>
                                 <p><span>销量:$sales_volume$unit_code</span><span class="pull-right">评论:$count_commont</span></p>
-                                <p class="mb-0 inline-block"><a target="_blank" href="$url" class="activity-span">$type$activitys</a><span class="a pull-right"><i class="glyphicon glyphicon-comment"></i></span></p>
+                                <p class="mb-0 inline-block"><a target="_blank" href="$url" class="activity-span" style="width: 120px">$type$activitys</a><span class="a pull-right"><i class="glyphicon glyphicon-comment"></i></span></p>
                     </div>
                 </div>
             </div>

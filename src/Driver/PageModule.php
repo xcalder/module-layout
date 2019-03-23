@@ -14,10 +14,7 @@ class PageModule implements ModuleInterface
      * @param unknown $setting
      */
     public static function viewHtml($setting){
-        $html = '';
-        $setting = unserialize($setting);
-        
-        //$html = $setting;
+        $html = self::setPage($setting);
         return $html;
     }
     
@@ -310,5 +307,43 @@ class PageModule implements ModuleInterface
                 }
             </script>
 ETO;
+    }
+        
+    private static function setPage($setting){
+        $html = '';
+        $limit = $setting['limit'] ?? 8;
+        $show_tag = $setting['show_tag'] ?? 1;
+        $tag = $setting['tag'];
+        
+        $setting = unserialize($setting['setting']);
+        
+        $pages = [];
+        $model_page = new Page();
+        if(!empty($setting['pages'])){
+            $model_page = $model_page->whereIn('id', $setting['pages']);
+        }
+        if(!empty($setting['category'])){
+            $model_page = $model_page->whereIn('child_category_id', $setting['category']);
+        }
+        $pages = $model_page->select(['id', 'title', 'img'])->limit($limit)->get()->toArray();
+        if(!empty($pages)){
+            $li_html = '';
+            foreach ($pages as $page){
+                $url = url('page/page_info?id='.$page['id']);
+                $li_html .= '<li class="list-group-item border-0"><a href="'.$url.'">'.$page['title'].'</a></li>';
+            }
+            $more_url = url('page/page_list');
+            $html = <<<ETO
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">$tag<a href="$more_url" class="pull-right f-14">更多>></a></h4>
+                  </div>
+                  <div class="panel-body p-0">
+                    <ul class="list-group mb-0">$li_html</ul>
+                  </div>
+                </div>
+ETO;
+        }
+        return $html;
     }
 }

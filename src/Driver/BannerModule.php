@@ -15,7 +15,7 @@ class BannerModule implements ModuleInterface
      */
     public static function viewHtml($setting){
         $html = '';
-        $setting = unserialize($setting);
+        $setting = unserialize($setting['setting']);
         
         $html = self::setBanner($setting);
         return $html;
@@ -204,7 +204,7 @@ ETO;
         }
         
         $html = <<<ETO
-<div id="$banner_id" class="carousel slide" data-ride="carousel">
+<div id="$banner_id" class="carousel slide" data-ride="carousel" data-interval="3000">
   <!-- Indicators -->
   <ol class="carousel-indicators">
     $ol_li_html
@@ -225,7 +225,11 @@ ETO;
     <span class="sr-only">下一张</span>
   </a>
 </div>
-
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#$banner_id").carousel('cycle');
+    })
+</script>
 ETO;
         return $html;
     }

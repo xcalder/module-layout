@@ -13,9 +13,6 @@ class ArticleModule implements ModuleInterface
      * @param unknown $setting
      */
     public static function viewHtml($setting){
-        $html = '';
-        $setting = unserialize($setting);
-        
         $html = self::setArticle($setting);
         return $html;
     }
@@ -313,17 +310,40 @@ ETO;
         
     private static function setArticle($setting){
         $html = '';
+        $limit = $setting['limit'] ?? 8;
+        $show_tag = $setting['show_tag'] ?? 1;
+        $tag = $setting['tag'];
+        
+        $setting = unserialize($setting['setting']);
+        
         $articles = [];
         $model_article = new Article();
         if(!empty($setting['articles'])){
             $model_article = $model_article->whereIn('id', $setting['articles']);
         }
-        if(!empty($setting['categorys'])){
-            $model_article = $model_article->whereIn('child_category_id', $setting['categorys']);
+        if(!empty($setting['category'])){
+            $model_article = $model_article->whereIn('child_category_id', $setting['category']);
         }
-        $articles = $model_article->->get()->toArray();
-        return $setting;
-        return $articles;
+        $articles = $model_article->select(['id', 'title', 'img'])->limit($limit)->get()->toArray();
+        if(!empty($articles)){
+            $li_html = '';
+            foreach ($articles as $article){
+                $url = url('article/article_info?id='.$article['id']);
+                $li_html .= '<li class="list-group-item border-0 border-bottom-1"><a href="'.$url.'">'.$article['title'].'</a></li>';
+            }
+            
+            $more_url = url('article/article_list');
+            $html = <<<ETO
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">$tag<a href="$more_url" class="pull-right f-14">更多>></a></h4>
+                  </div>
+                  <div class="panel-body p-0">
+                    <ul class="list-group mb-0">$li_html</ul>
+                  </div>
+                </div>
+ETO;
+        }
         return $html;
     }
 }

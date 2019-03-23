@@ -364,4 +364,16 @@ class IndexController extends BaseController
         
         return response()->json($data);
     }
+    
+    public function getModuleSettingToView(Request $request){
+        /*
+        $result = $this->validation->getModuleSettingToView($request);
+        if ($result) {
+            $data['error'] = $result;
+            return response()->json($data);
+        }
+        */
+        $result = $this->server->getModuleSettingToView($request);
+        echo $result;
+    }
 }
