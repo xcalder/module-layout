@@ -267,8 +267,7 @@ ETO;
             $modules_settings[$key]['layout'] = $layout_config[$layout_];
         }
         
-        $sort_orders = array_column($modules_settings,'sort_order');
-        array_multisort($sort_orders,SORT_DESC,$modules_settings);
+        $modules_settings = twoDimensionalArraySort($modules_settings, 'sort_order');
         
         foreach ($modules_settings as $key=>$value){
             $driver = $drivers[$value['config_id']];

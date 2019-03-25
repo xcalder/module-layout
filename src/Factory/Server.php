@@ -291,22 +291,27 @@ class Server
         }
         
         $result = $this->getModulesRoutes($request);
-        $modules_settings = [];
+        
         if(!empty($result)){
-            $layouts = [];
-            $layout_modules_settings = [];
+            $modules_settings = [];
+            $i = 0;
             foreach ($result as $value){
+                $layout = '';
                 if(!empty($value['modules_setting_to_route'])){
                     foreach ($value['modules_setting_to_route'] as $v){
-                        $layouts[] = $v['layout'];
-                        $layout_modules_settings[$v['layout']][] = url('api/modules/get_module_setting_view?api_token='.$request->input('api_token').'&id='.$v['id'].'&modules_setting_to_route_id='.$v['modules_setting_to_route_id']);
+                        $modules_settings[$v['layout']][$i]['url'] = url('api/modules/get_module_setting_view?api_token='.$request->input('api_token').'&id='.$v['id'].'&modules_setting_to_route_id='.$v['modules_setting_to_route_id']);
+                        $modules_settings[$v['layout']][$i]['sort_order'] = $v['sort_order'];
+                        $i++;
                     }
                 }
+                $i++;
             }
-            foreach ($layouts as $layout){
-                $modules_settings[$layout] = $layout_modules_settings[$layout];
+            foreach ($modules_settings as $key=>$value){
+                $layout_modules = twoDimensionalArraySort($value, 'sort_order');
+                $modules_settings[$key] = array_column($layout_modules, 'url');
             }
         }
+        
         return $modules_settings;
     }
     
@@ -323,7 +328,7 @@ class Server
                 $join->on('m.id', '=', 'ms.module_id');
             });
             $query->where('ms.status', 1);
-            $query->select(['m.config_id', 'ms.id', 'modules_setting_to_route.layout', 'modules_setting_to_route.route_id', 'modules_setting_to_route.id as modules_setting_to_route_id'])->orderBy('modules_setting_to_route.sort_order', 'desc');
+            $query->select(['m.config_id', 'ms.id', 'modules_setting_to_route.layout', 'modules_setting_to_route.route_id', 'modules_setting_to_route.id as modules_setting_to_route_id', 'modules_setting_to_route.sort_order'])->orderBy('modules_setting_to_route.sort_order', 'desc');
         }]);
         $i = 0;
         $count_routes = count($routes);
@@ -343,6 +348,7 @@ class Server
             $route_ = $route_.$route.'/';
             $i++;
         }
+        $modules_routes = $modules_routes->orWhere('route', 'like', '/*%');
         
         return $modules_routes = $modules_routes->select('id')->get()->toArray();
     }
