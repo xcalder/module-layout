@@ -357,7 +357,7 @@ class Server
      * 处理商品到html
      * @param unknown $products
      */
-    public function setProductHtml($products, $layout = 1){
+    public function setProductHtml($products, $layout = 1, $view_type = 1){
         $html = '';
         $col_num = 3;
         if(in_array($layout, [3, 4])){
@@ -390,6 +390,9 @@ class Server
                             <a target="_blank" href="$url">
                                 <img src="$thumb_img" alt="$title">
                             </a>
+ETO;
+                if($view_type != 3){
+                $html .= <<<ETO
                             <div class="caption h-158">
                                 <p class="m-0 one-row">
                                     <a target="_blank" href="$url">$title</a>
@@ -398,9 +401,13 @@ class Server
                                 <p><span class="price">￥$min_price</span><del class="ml-3 text-muted">￥$price</del></p>
                                 <p><span>销量:$sales_volume$unit_code</span><span class="pull-right">评论:$count_commont</span></p>
                                 <p class="mb-0 inline-block"><a target="_blank" href="$url" class="activity-span" style="width: 120px">$type$activitys</a><span class="a pull-right"><i class="glyphicon glyphicon-comment"></i></span></p>
+                            </div>
+ETO;
+                }
+                
+                $html .= <<<ETO
+                        </div>
                     </div>
-                </div>
-            </div>
 ETO;
             }
         }

@@ -46,6 +46,7 @@ class ArticleModule implements ModuleInterface
             $setting['sort_order'] = $input_setting['sort_order'] ?? 1;
             $setting['view_type'] = $input_setting['view_type'] ?? 1;
             $setting['category'] = array_values($input_setting['category'] ?? []) ?? [];
+            $setting['child_category'] = array_values($input_setting['child_category'] ?? []) ?? [];
             $setting['articles'] = $setting_articles;
         }
         if(!empty($input_article_id)){
@@ -167,6 +168,7 @@ class ArticleModule implements ModuleInterface
             </div>
             <script type="text/javascript">
                 var setting_category = [];
+                var setting_child_category = [];
                 $(document).ready(function () {
                     $('.modal-article').modal();
                     getModuleSetting();
@@ -200,6 +202,7 @@ class ArticleModule implements ModuleInterface
                             if(data.status){
                                 var setting = data.data.setting;
                                 setting_category = setting.category;
+                                setting_child_category = setting.child_category;
                                 getCategory();
                                 if(setting){
                                     if(!isEmpty(setting.sort_order)){
@@ -236,14 +239,18 @@ class ArticleModule implements ModuleInterface
                             for(var i in data.data.data){
                                 var category = data.data.data[i];
                                 if(!isEmpty(category.child)){
-                                    html += '<label class="btn-block">'+category.title+'</label>';
+                                    if(in_array(category.id, setting_category)){
+                                        html += '<label class="btn-block"><input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+category.id+'" checked>'+category.title+'</label>';
+                                    }else{
+                                        html += '<label class="btn-block"><input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+category.id+'">'+category.title+'</label>';
+                                    }
                                     for(var c in category.child){
                                         var child = category.child[c];
                                         html += '<label class="checkbox-inline ml-0 mr-3">';
-                                        if(in_array(child.id, setting_category)){
-                                            html += '<input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+child.id+'" checked> '+child.title;
+                                        if(in_array(child.id, setting_child_category)){
+                                            html += '<input type="checkbox" class="module-setting-category" name="setting[child_category]['+e+']" value="'+child.id+'" checked> '+child.title;
                                         }else{
-                                            html += '<input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+child.id+'"> '+child.title;
+                                            html += '<input type="checkbox" class="module-setting-category" name="setting[child_category]['+e+']" value="'+child.id+'"> '+child.title;
                                         }
                                         html += '</label>';
                                         e++;
@@ -322,7 +329,10 @@ ETO;
             $model_article = $model_article->whereIn('id', $setting['articles']);
         }
         if(!empty($setting['category'])){
-            $model_article = $model_article->whereIn('child_category_id', $setting['category']);
+            $model_article = $model_article->whereIn('category_id', $setting['category']);
+        }
+        if(!empty($setting['child_category'])){
+            $model_article = $model_article->orWhereIn('child_category_id', $setting['child_category']);
         }
         $articles = $model_article->select(['id', 'title', 'img'])->limit($limit)->get()->toArray();
         if(!empty($articles)){

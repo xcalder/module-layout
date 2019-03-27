@@ -14,48 +14,7 @@ class ActivityModule implements ModuleInterface
      * @param unknown $setting
      */
     public static function viewHtml($setting){
-        $html = '';
-        $limit = $setting['limit'] ?? 8;
-        $show_tag = $setting['show_tag'] ?? 1;
-        $tag = $setting['tag'];
-        $layout = $setting['layout'] ?? 3;
-        $setting = unserialize($setting['setting']);
-        
-        $activity_ids = $setting['activitys'] ?? [];
-        if(empty($activity_ids)){
-            return $html;
-        }
-        $products = ProductActivityRuleProducts::whereIn('activity_id', $activity_ids)->select(['product_id'])->groupBy('product_id')->limit($limit)->get()->toArray();
-        $product_ids = lumen_array_column($products, 'product_id');
-        
-        if(empty($product_ids)){
-            return $html;
-        }
-        
-        $product_service = new ProductService();
-        $products = $product_service->getProductList(['product_ids' => $product_ids]);
-        
-        $server = new Server();
-        $product_html = $server->setProductHtml($products, $layout);
-        
-        $more_url = url();
-        $html = <<<ETO
-            <div class="panel panel-default">
-ETO;
-        if($show_tag == 1){
-            $html .= <<<ETO
-            <div class="panel-heading">
-                <h4 class="panel-title">$tag<a href="$more_url" class="pull-right f-14">更多>></a></h4>
-            </div>
-ETO;
-        }
-        
-        $html .= <<<ETO
-              <div class="panel-body p-0">$product_html</div>
-            </div>
-ETO;
-        
-        return $html;
+        return self::setHtml($setting);
     }
     
     /**
@@ -111,6 +70,15 @@ ETO;
                 <div class="modal-content p-3">
                     <form id="select-activity-form" method="post" enctype="multipart/form-data" action="$update_setting">
                       <div class="form-group">
+                        <label for="view_type">前台样式</label>
+                        <select class="form-control" id="view_type" name="setting[view_type]">
+                            <option value="1">图文横排</option>
+                            <option value="2">图文坚排</option>
+                            <option value="3">只显示图片</option>
+                            <option value="4">只显示文字</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
                         <label for="activity" class="btn-block">选择活动</label>
                         $activity_checkbox_html
                       </div>
@@ -159,5 +127,50 @@ ETO;
         $date = date("Y-m-d H:i:s");
         $result = ProductActivity::where('ended_at', '>', $date)->select(['id', 'title'])->get()->toArray();
         return $result;
+    }
+    
+    private static function setHtml($setting){
+        $html = '';
+        $limit = $setting['limit'] ?? 8;
+        $show_tag = $setting['show_tag'] ?? 1;
+        $tag = $setting['tag'];
+        $layout = $setting['layout'] ?? 3;
+        $setting = unserialize($setting['setting']);
+        $view_type = $setting['view_type'] ?? 1;
+        
+        $activity_ids = $setting['activitys'] ?? [];
+        if(empty($activity_ids)){
+            return $html;
+        }
+        $products = ProductActivityRuleProducts::whereIn('activity_id', $activity_ids)->select(['product_id'])->groupBy('product_id')->limit($limit)->get()->toArray();
+        $product_ids = lumen_array_column($products, 'product_id');
+        
+        if(empty($product_ids)){
+            return $html;
+        }
+        
+        $product_service = new ProductService();
+        $products = $product_service->getProductList(['product_ids' => $product_ids]);
+        
+        $server = new Server();
+        $product_html = $server->setProductHtml($products, $layout, $view_type);
+        
+        $more_url = url('activity/activity_list');
+        $html = <<<ETO
+            <div class="panel panel-default">
+ETO;
+        if($show_tag == 1){
+            $html .= <<<ETO
+            <div class="panel-heading">
+                <h4 class="panel-title">$tag<a href="$more_url" class="pull-right f-14">更多>></a></h4>
+            </div>
+ETO;
+        }
+        
+        $html .= <<<ETO
+              <div class="panel-body p-0">$product_html</div>
+            </div>
+ETO;
+        return $html;
     }
 }

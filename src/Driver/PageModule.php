@@ -47,6 +47,7 @@ class PageModule implements ModuleInterface
             $setting['sort_order'] = $input_setting['sort_order'] ?? 1;
             $setting['view_type'] = $input_setting['view_type'] ?? 1;
             $setting['category'] = array_values($input_setting['category'] ?? []) ?? [];
+            $setting['child_category'] = array_values($input_setting['child_category'] ?? []) ?? [];
             $setting['pages'] = $setting_pages;
         }
         if(!empty($input_page_id)){
@@ -168,6 +169,7 @@ class PageModule implements ModuleInterface
             </div>
             <script type="text/javascript">
                 var setting_category = [];
+                var setting_child_category = [];
                 $(document).ready(function () {
                     $('.modal-page').modal();
                     getModuleSetting();
@@ -201,6 +203,7 @@ class PageModule implements ModuleInterface
                             if(data.status){
                                 var setting = data.data.setting;
                                 setting_category = setting.category;
+                                setting_child_category = setting.child_category;
                                 getCategory();
                                 if(setting){
                                     if(!isEmpty(setting.sort_order)){
@@ -237,14 +240,19 @@ class PageModule implements ModuleInterface
                             for(var i in data.data.data){
                                 var category = data.data.data[i];
                                 if(!isEmpty(category.child)){
-                                    html += '<label class="btn-block">'+category.title+'</label>';
+                                    if(in_array(category.id, setting_category)){
+                                        html += '<label class="btn-block"><input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+category.id+'" checked>'+category.title+'</label>';
+                                    }else{
+                                       html += '<label class="btn-block"><input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+category.id+'" checked>'+category.title+'</label>';
+                                    }
+                                    
                                     for(var c in category.child){
                                         var child = category.child[c];
                                         html += '<label class="checkbox-inline ml-0 mr-3">';
-                                        if(in_array(child.id, setting_category)){
-                                            html += '<input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+child.id+'" checked> '+child.title;
+                                        if(in_array(child.id, setting_child_category)){
+                                            html += '<input type="checkbox" class="module-setting-category" name="setting[child_category]['+e+']" value="'+child.id+'" checked> '+child.title;
                                         }else{
-                                            html += '<input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+child.id+'"> '+child.title;
+                                            html += '<input type="checkbox" class="module-setting-category" name="setting[child_category]['+e+']" value="'+child.id+'"> '+child.title;
                                         }
                                         html += '</label>';
                                         e++;
@@ -323,7 +331,10 @@ ETO;
             $model_page = $model_page->whereIn('id', $setting['pages']);
         }
         if(!empty($setting['category'])){
-            $model_page = $model_page->whereIn('child_category_id', $setting['category']);
+            $model_page = $model_page->whereIn('category_id', $setting['category']);
+        }
+        if(!empty($setting['child_category'])){
+            $model_page = $model_page->orWhereIn('child_category_id', $setting['child_category']);
         }
         $pages = $model_page->select(['id', 'title', 'img'])->limit($limit)->get()->toArray();
         if(!empty($pages)){

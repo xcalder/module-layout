@@ -13,46 +13,7 @@ class ProductModule implements ModuleInterface
      * @param unknown $setting
      */
     public static function viewHtml($setting){
-        $html = '';
-        $limit = $setting['limit'] ?? 8;
-        $show_tag = $setting['show_tag'] ?? 1;
-        $tag = $setting['tag'];
-        $layout = $setting['layout'] ?? 3;
-        $setting = unserialize($setting['setting']);
-        
-        $product_ids = $setting['products'] ?? [];
-        $category = $setting['category'] ?? [];
-        $products = new Product();
-        if(!empty($product_ids)){
-            $products = $products->whereIn('id', $product_ids);
-        }
-        if(!empty($category)){
-            $products = $products->whereIn('child_category_id', $category);
-        }
-        
-        $products = $products->select(['id'])->groupBy('id')->limit($limit)->get()->toArray();
-        $product_ids = lumen_array_column($products, 'id');
-        
-        if(empty($product_ids)){
-            return $html;
-        }
-        
-        $product_service = new ProductService();
-        $products = $product_service->getProductList(['product_ids' => $product_ids]);
-        
-        $server = new Server();
-        $product_html = $server->setProductHtml($products, $layout);
-        
-        $html = <<<ETO
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h4 class="panel-title">$tag</h4>
-              </div>
-              <div class="panel-body p-0">$product_html</div>
-            </div>
-ETO;
-        
-        return $html;
+        return self::setProduct($setting);
     }
     
     /**
@@ -84,6 +45,7 @@ ETO;
             $setting['sort_order'] = $input_setting['sort_order'] ?? 1;
             $setting['view_type'] = $input_setting['view_type'] ?? 1;
             $setting['category'] = array_values($input_setting['category'] ?? []) ?? [];
+            $setting['child_category'] = array_values($input_setting['child_category'] ?? []) ?? [];
             $setting['products'] = $setting_products;
         }
         if(!empty($input_product_id)){
@@ -205,6 +167,7 @@ ETO;
             </div>
             <script type="text/javascript">
                 var setting_category = [];
+                var setting_child_category = [];
                 $(document).ready(function () {
                     $('.modal-product').modal();
                     getModuleSetting();
@@ -238,6 +201,7 @@ ETO;
                             if(data.status){
                                 var setting = data.data.setting;
                                 setting_category = setting.category;
+                                setting_child_category = setting.child_category;
                                 getCategory();
                                 if(setting){
                                     if(!isEmpty(setting.sort_order)){
@@ -274,14 +238,19 @@ ETO;
                             for(var i in data.data.data){
                                 var category = data.data.data[i];
                                 if(!isEmpty(category.child)){
-                                    html += '<label class="btn-block">'+category.title+'</label>';
+                                    if(in_array(category.id, setting_category)){
+                                        html += '<label class="btn-block"><input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+category.id+'" checked>'+category.title+'</label>';
+                                    }else{
+                                        html += '<label class="btn-block"><input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+category.id+'">'+category.title+'</label>';
+                                    }
+                                    
                                     for(var c in category.child){
                                         var child = category.child[c];
                                         html += '<label class="checkbox-inline ml-0 mr-3">';
-                                        if(in_array(child.id, setting_category)){
-                                            html += '<input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+child.id+'" checked> '+child.title;
+                                        if(in_array(child.id, setting_child_category)){
+                                            html += '<input type="checkbox" class="module-setting-category" name="setting[child_category]['+e+']" value="'+child.id+'" checked> '+child.title;
                                         }else{
-                                            html += '<input type="checkbox" class="module-setting-category" name="setting[category]['+e+']" value="'+child.id+'"> '+child.title;
+                                            html += '<input type="checkbox" class="module-setting-category" name="setting[child_category]['+e+']" value="'+child.id+'"> '+child.title;
                                         }
                                         html += '</label>';
                                         e++;
@@ -344,5 +313,53 @@ ETO;
                 }
             </script>
 ETO;
+    }
+        
+    private static function setProduct($setting){
+        $html = '';
+        $limit = $setting['limit'] ?? 8;
+        $show_tag = $setting['show_tag'] ?? 1;
+        $tag = $setting['tag'];
+        $layout = $setting['layout'] ?? 3;
+        $setting = unserialize($setting['setting']);
+        $view_type = $setting['view_type'] ?? 1;
+        
+        $product_ids = $setting['products'] ?? [];
+        $category = $setting['category'] ?? [];
+        $child_category = $setting['child_category'] ?? [];
+        $products = new Product();
+        if(!empty($product_ids)){
+            $products = $products->whereIn('id', $product_ids);
+        }
+        if(!empty($category)){
+            $products = $products->whereIn('category_id', $category);
+        }
+        
+        if(!empty($child_category)){
+            $products = $products->whereIn('child_category_id', $child_category);
+        }
+        
+        $products = $products->select(['id'])->groupBy('id')->limit($limit)->get()->toArray();
+        $product_ids = lumen_array_column($products, 'id');
+        
+        if(empty($product_ids)){
+            return $html;
+        }
+        
+        $product_service = new ProductService();
+        $products = $product_service->getProductList(['product_ids' => $product_ids]);
+        
+        $server = new Server();
+        $product_html = $server->setProductHtml($products, $layout, $view_type);
+        
+        $html = <<<ETO
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">$tag</h4>
+              </div>
+              <div class="panel-body p-0">$product_html</div>
+            </div>
+ETO;
+        return $html;
     }
 }
